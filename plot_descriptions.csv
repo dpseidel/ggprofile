@@ -1,0 +1,22 @@
+Plot Names,Plot Description
+BaseR,BaseR - Scatterplot w/ 50k+ points
+lg_sctr,Scatterplot w/ 50k+ points
+sm_sctr,Scatterplot w/1K points
+trans,Scatterplot w/ transformed scale
+many_axis,Scatterplot w/ many axis lables
+no_lgd,No Legend
+sm_lgd_d,Small discrete legend (5 levels)
+lg_lgd_d,Larger discrete legend (8 levels)
+lgd_c,Continuous legend
+fct_5,Facetting Scatterplot - 5 facets
+fct_35,Facetting Scatterplot - 35 facets
+ht_map,Heat map with labels
+lyr2,2 layers - scatter + geom_smooth (lm)
+lyr3,3 layers - scatter + geom_smooth (lm & loess)
+hist,"histogram, position = stack"
+hist_dg,"histogram, position = dodge"
+hist_mny_bns,"histogram, many bins"
+maps_us,"maps, geom_polygon, usa"
+maps_sts,"maps, geom_polygon, states"
+sf_many,"geom_sf, 100 small polygons"
+sf_one,"geom_sf, one large multi-polygon"
