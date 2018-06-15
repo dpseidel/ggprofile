@@ -19,36 +19,31 @@ descriptions <- read_csv("plot_descriptions.csv")
 This is likely a GAM issue, not caused by the simple addition of a 3rd layer in ggplot. 
 Adding a second layer is no slower than simply plotting the 50K scatter plot
 - Surprisingly, one large sf_polygon is slower to plot than 100 small sf_polygons with geom_sf
-- Heavy facetting has increases processing time of build, render, and draw steps
-
+- Heavy facetting increases processing time of build, render, and draw steps
 
 ```{r, echo = F}
 pdf_timing %>%
   filter(plot_type != "lyr3", plot_type == "BaseR" | step != "TOTAL") %>%
   ggplot(., aes(
-    x = plot_type, y = elapsed,
+    x = parse_factor(plot_type, levels = unique(plot_type)), y = elapsed,
     fill = parse_factor(step, c("TOTAL", "draw", "render", "build", "construct"))
-  )) +
+  )) + coord_flip() +
   geom_bar(stat = "identity") + scale_fill_viridis_d("Step") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  xlab("Plot") + ylab("Elapsed (secs)") +
-  ggtitle("Elapsed time by plotting step - PDF driver")
+  labs(
+    title = "Elapsed time by plotting step - PDF driver",
+    x = "Plot", y = "Elapsed (secs)",
+    subtitle = "Note: Plots were run in order from bottom to top, i.e. BaseR to sf_one"
+  )
 ```
 
-### Plots Tested 
-
-```{r, echo = F}
-descriptions
-```
-
-### Driver matters 
+### Graphic Device matters
 - Even with the addition of a `grid.new()` call in `tidy_benchmark`, 
 Rstudio GD seems to drag and affect the estimates of construct when combined with `map`
-- This `construct` inflation does not happen if you run each `tidy_benchplot` call individually.
-- Addionally draw times for the RStudio GD, take and average of 5.66 times longer then
-calling the pdf driver instead. 
+- This `construct` inflation does not happen if you run each `tidy_benchplot` 
+call individually and as such it's likely actually measuring the rgd doing its drawing from 
+the previous plot. 
 
-```{r}
+```{r, include = F}
 mean_rgd <- rgd_timing %>%
   group_by(step, plot_type) %>%
   mutate(mean = mean(elapsed), driver = "RGD")
@@ -61,15 +56,24 @@ bind_rows(mean_rgd, mean_pdf) %>%
   summarise(mean_draw = mean(elapsed))
 ```
 
-```{r, echo=F}
+```{r, echo = F}
 rgd_timing %>%
   filter(plot_type != "lyr3", plot_type == "BaseR" | step != "TOTAL") %>%
   ggplot(., aes(
-    x = plot_type, y = elapsed,
+    x = parse_factor(plot_type, levels = unique(plot_type)), y = elapsed,
     fill = parse_factor(step, c("TOTAL", "draw", "render", "build", "construct"))
-  )) +
+  )) + coord_flip() +
   geom_bar(stat = "identity") + scale_fill_viridis_d("Step") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  xlab("Plot") + ylab("Elapsed (secs)") +
-  ggtitle("Elapsed time by plotting step - PDF driver")
+  labs(
+    title = "Elapsed time by plotting step - RStudio GD",
+    x = "Plot", y = "Elapsed (secs)",
+    subtitle = "Note: Plots were run in order from bottom to top, i.e. BaseR to sf_one"
+  )
 ```
+
+### Plots Tested 
+
+```{r, echo = F}
+descriptions
+```
+
