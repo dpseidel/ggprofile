@@ -91,8 +91,9 @@ tidy_benchplot <- function(x) {
 # PDF
 dev_info <- paste(Sys.info()[1], getOption("bitmapType"), Sys.Date(), sep = "_")
 
-# png(paste0("test_plots/testplots_", dev_info, "-%d.png"))
-pdf(paste0("test_plots/testplots_", dev_info, ".pdf"))
+dir.create(paste0("test_plots/", dev_info))
+png(paste0("test_plots/", dev_info,"/plot%d.png"))
+#pdf(paste0("test_plots/testplots_", dev_info, ".pdf"))
 base <- system.time(plot(diamonds$carat, diamonds$price))
 timing <- lapply(plots, tidy_benchplot)
 dev.off()
