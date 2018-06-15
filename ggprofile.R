@@ -73,10 +73,10 @@ plots <- list(
 tidy_benchplot <- function(x) {
   construct <- system.time(x <- rlang::eval_tidy(x))
   stopifnot(inherits(x, "ggplot"))
-  
+
   build <- system.time(data <- ggplot_build(x))
   render <- system.time(grob <- ggplot_gtable(data))
-  grid.newpage()  # added for iteration, so we drawing on the same page
+  grid.newpage() # added for iteration, so we drawing on the same page
   draw <- system.time(grid.draw(grob))
 
   times <- rbind(construct, build, render, draw)[, 1:3]
@@ -88,27 +88,30 @@ tidy_benchplot <- function(x) {
 }
 
 # Profile and Plot
-# PDF
-dev_info <- paste(Sys.info()[1], getOption("bitmapType"), Sys.Date(), sep = "_")
+#
 
-dir.create(paste0("test_plots/", dev_info))
-png(paste0("test_plots/", dev_info,"/plot%d.png"))
-#pdf(paste0("test_plots/testplots_", dev_info, ".pdf"))
-base <- system.time(plot(diamonds$carat, diamonds$price))
-timing <- lapply(plots, tidy_benchplot)
-dev.off()
+png_profile <- function(plot_list = plots, driver = getOption("bitmapType")) {
+  dev_info <- paste(Sys.info()[1], driver, Sys.Date(), sep = "_")
+  dir.create(paste0("test_plots/", dev_info))
 
-# format as table
-table <- timing %>%
-  bind_rows() %>%
-  mutate(plot_type = rep(names(timing), each = 5)) %>%
-  add_row(
-    step = "TOTAL",
-    user.self = base[1],
-    sys.self = base[2],
-    elapsed = base[3],
-    plot_type = "BaseR", .before = 1
-  )
+  png(paste0("test_plots/", dev_info, "/plot%d.png"), type = driver)
+  base <- system.time(plot(diamonds$carat, diamonds$price))
+  timing <- lapply(plot_list, tidy_benchplot)
+  dev.off()
 
-# write out to csv
-write_csv(table, paste0("results/ggProfile_", dev_info, ".csv"))
+  table <- timing %>%
+    bind_rows() %>%
+    mutate(plot_type = rep(names(timing), each = 5)) %>%
+    add_row(
+      step = "TOTAL",
+      user.self = base[1],
+      sys.self = base[2],
+      elapsed = base[3],
+      plot_type = "BaseR", .before = 1
+    )
+
+  write_csv(table, paste0("results/ggProfile_png_", dev_info, ".csv"))
+  return(table)
+}
+
+device_results <- purrr::map(c("quartz", "cairo", "Xlib"), ~ png_profile(plots, driver = .))
