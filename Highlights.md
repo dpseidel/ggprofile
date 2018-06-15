@@ -2,21 +2,32 @@ Profiling ggplot2 - highlighted results
 ================
 
 Notable results
----------------
+===============
 
--   Base scatter of diamonds is about 6.25 times faster than ggplot2.
--   The addition of a loess smoother is an outlier, increasing the time to plot &gt;25sec. This is likely a GAM issue, not caused by the simple addition of a 3rd layer in ggplot. Adding a second layer is no slower than simply plotting the 50K scatter plot
+-   The addition of a loess smoother is an outlier, increasing the time to plot &gt;25sec. This is likely a GAM issue, not caused by the simple addition of a 3rd layer in ggplot. Adding a second layer is no slower than simply plotting the 50K scatter plot. *Each of the following plots omit this plot for this reason*.
 -   Surprisingly, one large sf\_polygon is slower to plot than 100 small sf\_polygons with geom\_sf
--   Heavy facetting increases processing time of build, render, and draw steps
+-   Heavy facetting increases processing time of build, render, and draw steps.
+-   "Xlib" throws repeated warning: `In grid.Call.graphics(C_path, x$x, x$y, index, switch(x$rule,  ... :   Path drawing not available for this device` and fails to draw `geom_sf` and `geom_polygon` plots correctly. Affecting those measurements accordingly.
+
+*For more verbose descriptions of the plots called, see description table at bottom of this file, or the plot calls in `ggprofile.R`*
+
+Graphics Device matters
+-----------------------
+
+### PNG
 
 ![](Highlights_files/figure-markdown_github/unnamed-chunk-1-1.png)
 
-### Graphic Device matters
+### PDF Quartz
+
+![](Highlights_files/figure-markdown_github/unnamed-chunk-2-1.png)
+
+### RStudio GD
 
 -   Even with the addition of a `grid.new()` call in `tidy_benchmark`, Rstudio GD seems to drag and affect the estimates of construct when combined with `map`
 -   This `construct` inflation does not happen if you run each `tidy_benchplot` call individually and as such it's likely actually measuring the rgd doing its drawing from the previous plot.
 
-![](Highlights_files/figure-markdown_github/unnamed-chunk-3-1.png)
+![](Highlights_files/figure-markdown_github/unnamed-chunk-4-1.png)
 
 ### Plots Tested
 

@@ -8,19 +8,50 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(printr)
 
-rgd_timing <- read_csv("results/ggProfile_Darwin_quartz_2018-06-14_RstudioGD.csv")
-pdf_timing <- read_csv("results/ggProfile_Darwin_quartz_2018-06-14.csv")
 descriptions <- read_csv("plot_descriptions.csv")
+rgd_timing <- read_csv("results/ggProfile_rgd_Darwin_quartz_2018-06-14.csv")
+pdf_timing <- read_csv("results/ggProfile_pdf_Darwin_quartz_2018-06-14.csv")
+
+pngs <- list.files("results/", pattern = "png", full.names = T)
+png_timing <- purrr::map_df(pngs, read_csv) %>%
+  mutate(device = rep(c("cairo", "CairoPNG", "quartz", "Xlib", "win"), each = 101))
 ```
 
-## Notable results
-- Base scatter of diamonds is about 6.25 times faster than ggplot2. 
+# Notable results
 - The addition of a loess smoother is an outlier, increasing the time to plot >25sec. 
 This is likely a GAM issue, not caused by the simple addition of a 3rd layer in ggplot. 
-Adding a second layer is no slower than simply plotting the 50K scatter plot
+Adding a second layer is no slower than simply plotting the 50K scatter plot. 
+*Each of the following plots omit this plot for this reason*.
 - Surprisingly, one large sf_polygon is slower to plot than 100 small sf_polygons with geom_sf
-- Heavy facetting increases processing time of build, render, and draw steps
+- Heavy facetting increases processing time of build, render, and draw steps.
+- "Xlib" throws repeated warning: `In grid.Call.graphics(C_path, x$x, x$y, index, switch(x$rule,  ... :
+  Path drawing not available for this device` and fails to draw `geom_sf` and `geom_polygon` plots correctly. 
+  Affecting those measurements accordingly.
 
+*For more verbose descriptions of the plots called, see description table at bottom of this file, 
+or the plot calls in `ggprofile.R`*
+
+## Graphics Device matters
+
+### PNG
+
+```{r, echo = F}
+png_timing %>%
+  filter(plot_type != "lyr3", plot_type == "BaseR" | step != "TOTAL") %>%
+  ggplot(., aes(
+    x = parse_factor(plot_type, levels = unique(plot_type)), y = elapsed,
+    fill = parse_factor(step, c("TOTAL", "draw", "render", "build", "construct"))
+  )) + coord_flip() +
+  facet_grid(. ~ parse_factor(device, levels = c("cairo", "quartz", "Xlib", "CairoPNG", "win"))) +
+  geom_bar(stat = "identity") + scale_fill_viridis_d("Step") +
+  labs(
+    title = "Elapsed time by plotting step - PNG",
+    x = "Plot", y = "Elapsed (secs)",
+    subtitle = "Note: Plots were run in order from bottom to top, i.e. BaseR to sf_one"
+  ) + theme(legend.position = "bottom")
+```
+
+### PDF Quartz
 ```{r, echo = F}
 pdf_timing %>%
   filter(plot_type != "lyr3", plot_type == "BaseR" | step != "TOTAL") %>%
@@ -36,7 +67,7 @@ pdf_timing %>%
   )
 ```
 
-### Graphic Device matters
+### RStudio GD
 - Even with the addition of a `grid.new()` call in `tidy_benchmark`, 
 Rstudio GD seems to drag and affect the estimates of construct when combined with `map`
 - This `construct` inflation does not happen if you run each `tidy_benchplot` 
@@ -76,4 +107,3 @@ rgd_timing %>%
 ```{r, echo = F}
 descriptions
 ```
-
