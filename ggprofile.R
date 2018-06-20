@@ -20,57 +20,58 @@ nc_whole <- st_union(nc)
 
 
 # Plot calls
-plots <- list(
-  lg_sctr = expr(ggplot(diamonds, aes(carat, price)) +
-    geom_point()),
-  sm_sctr = expr(ggplot(diamonds[1:1000, ], aes(carat, price)) +
-    geom_point()),
-  trans = expr(ggplot(diamonds, aes(carat, price)) + geom_point() +
-    scale_x_log10()),
-  many_axis = expr(ggplot(diamonds, aes(carat, price)) +
+plots <- exprs(
+  lg_sctr = ggplot(diamonds, aes(carat, price)) +
+    geom_point(),
+  sm_sctr = ggplot(diamonds[1:1000, ], aes(carat, price)) +
+    geom_point(),
+  trans = ggplot(diamonds, aes(carat, price)) + geom_point() +
+    scale_x_log10(),
+  many_axis = ggplot(diamonds, aes(carat, price)) +
     geom_point() +
-    scale_x_continuous(breaks = seq(0, 5, .25))),
-  no_lgd = expr(ggplot(diamonds, aes(carat, price, colour = cut)) +
+    scale_x_continuous(breaks = seq(0, 5, .25)),
+  no_lgd = ggplot(diamonds, aes(carat, price, colour = cut)) +
     geom_point() +
-    theme(legend.position = "none")),
-  sm_lgd_d = expr(ggplot(diamonds, aes(carat, price, colour = cut)) +
-    geom_point()),
-  lg_lgd_d = expr(ggplot(diamonds, aes(carat, price, colour = clarity)) +
-    geom_point()),
-  lgd_c = expr(ggplot(diamonds, aes(carat, price, colour = depth)) +
-    geom_point()),
-  fct_5 = expr(ggplot(diamonds, aes(carat, price)) + geom_point() +
-    facet_grid(. ~ cut)),
-  fct_35 = expr(ggplot(diamonds, aes(carat, price)) + geom_point() +
-    facet_grid(vars(color), vars(cut))),
-  ht_map = expr(ggplot(mcor, aes(var1, var2, fill = cor)) +
-    geom_raster()),
-  lyr2 = expr(ggplot(diamonds, aes(carat, price)) +
+    theme(legend.position = "none"),
+  sm_lgd_d = ggplot(diamonds, aes(carat, price, colour = cut)) +
+    geom_point(),
+  lg_lgd_d = ggplot(diamonds, aes(carat, price, colour = clarity)) +
+    geom_point(),
+  lgd_c = ggplot(diamonds, aes(carat, price, colour = depth)) +
+    geom_point(),
+  fct_5 = ggplot(diamonds, aes(carat, price)) + geom_point() +
+    facet_grid(. ~ cut),
+  fct_35 = ggplot(diamonds, aes(carat, price)) + geom_point() +
+    facet_grid(vars(color), vars(cut)),
+  ht_map = ggplot(mcor, aes(var1, var2, fill = cor)) +
+    geom_raster(),
+  lyr2 = ggplot(diamonds, aes(carat, price)) +
     geom_point() +
-    geom_smooth(aes(colour = "lm"), method = "lm", se = FALSE)),
-  lyr3 = expr(ggplot(diamonds, aes(carat, price)) +
+    geom_smooth(aes(colour = "lm"), method = "lm", se = FALSE),
+  lyr3 = ggplot(diamonds, aes(carat, price)) +
     geom_point() +
     geom_smooth(aes(colour = "loess"), method = "loess", se = FALSE) +
-    geom_smooth(aes(colour = "lm"), method = "lm", se = FALSE)),
-  hist = expr(ggplot(diamonds, aes(x = price, fill = cut)) +
-    geom_histogram(binwidth = 1000)),
-  hist_dg = expr(ggplot(diamonds, aes(x = price, fill = cut)) +
-    geom_histogram(position = "dodge", binwidth = 1000)),
-  hist_mny_bns = expr(ggplot(diamonds, aes(x = price, fill = cut)) +
-    geom_histogram(binwidth = 100)),
-  maps_us = expr(ggplot(data = usa) +
+    geom_smooth(aes(colour = "lm"), method = "lm", se = FALSE),
+  hist = ggplot(diamonds, aes(x = price, fill = cut)) +
+    geom_histogram(binwidth = 1000),
+  hist_dg = ggplot(diamonds, aes(x = price, fill = cut)) +
+    geom_histogram(position = "dodge", binwidth = 1000),
+  hist_mny_bns = ggplot(diamonds, aes(x = price, fill = cut)) +
+    geom_histogram(binwidth = 100),
+  maps_us = ggplot(data = usa) +
     geom_polygon(aes(x = long, y = lat, group = group)) +
-    coord_fixed(1.3)),
-  maps_sts = expr(ggplot(data = states) +
+    coord_fixed(1.3),
+  maps_sts = ggplot(data = states) +
     geom_polygon(aes(x = long, y = lat, group = group)) +
-    coord_fixed(1.3)),
-  sf_many = expr(ggplot(data = nc_whole) + geom_sf()),
-  sf_one = expr(ggplot(data = nc) + geom_sf())
+    coord_fixed(1.3),
+  sf_many = ggplot(data = nc_whole) + geom_sf(),
+  sf_one = ggplot(data = nc) + geom_sf()
 )
 
 
 # adjust ggplot2::benchplot function to except expr
 tidy_benchplot <- function(x) {
+  gc()
   construct <- system.time(x <- rlang::eval_tidy(x))
   stopifnot(inherits(x, "ggplot"))
 
