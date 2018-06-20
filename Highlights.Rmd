@@ -74,7 +74,8 @@ pdf_timing %>%
   labs(
     title = "Elapsed time by plotting step - PDF driver",
     x = "Plot", y = "Elapsed (secs)",
-    subtitle = "Note: Plots were run in order from top to bottom, i.e. BaseR to sf_one"
+    subtitle = "Note: Plots were run in order from top to bottom, i.e. BaseR to sf_one", 
+    caption = paste("Data collected on 2018-06-14")
   )
 ```
 
@@ -112,7 +113,8 @@ rgd_timing %>%
   labs(
     title = "Elapsed time by plotting step - RStudio GD",
     x = "Plot", y = "Elapsed (secs)",
-    subtitle = "Note: Plots were run in order from top to bottom, i.e. BaseR to sf_one"
+    subtitle = "Note: Plots were run in order from top to bottom, i.e. BaseR to sf_one",
+    caption = paste("Data collected on 2018-06-14")
   )
 ```
 
