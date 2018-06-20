@@ -14,7 +14,13 @@ pdf_timing <- read_csv("results/ggProfile_pdf_Darwin_quartz_2018-06-14.csv")
 
 pngs <- list.files("results/", pattern = "png", full.names = T)
 png_timing <- purrr::map_df(pngs, read_csv) %>%
-  mutate(device = rep(c("cairo", "CairoPNG", "quartz", "Xlib", "win"), each = 101))
+  mutate(
+    device = parse_factor(rep(c("cairo", "CairoPNG", "quartz", "Xlib", "win"), each = 101),
+      levels = c("cairo", "quartz", "Xlib", "CairoPNG", "win")
+    ),
+    step = parse_factor(step, c("construct", "build", "render", "draw", "TOTAL"), ordered = TRUE),
+    plot_type = parse_factor(plot_type, levels = rev(unique(plot_type)))
+  )
 ```
 
 # Notable results
@@ -38,16 +44,14 @@ or the plot calls in `ggprofile.R`*
 ```{r, echo = F}
 png_timing %>%
   filter(plot_type != "lyr3", plot_type == "BaseR" | step != "TOTAL") %>%
-  ggplot(., aes(
-    x = parse_factor(plot_type, levels = unique(plot_type)), y = elapsed,
-    fill = parse_factor(step, c("TOTAL", "draw", "render", "build", "construct"))
-  )) + coord_flip() +
-  facet_grid(. ~ parse_factor(device, levels = c("cairo", "quartz", "Xlib", "CairoPNG", "win"))) +
-  geom_bar(stat = "identity") + scale_fill_viridis_d("Step") +
+  ggplot(., aes(x = plot_type, y = elapsed, fill = step)) +
+  geom_bar(stat = "identity", position = position_stack(reverse = T)) +
+  facet_grid(. ~ device) + coord_flip() +
+  scale_fill_viridis_d("Step", direction = -1) +
   labs(
     title = "Elapsed time by plotting step - PNG",
     x = "Plot", y = "Elapsed (secs)",
-    subtitle = "Note: Plots were run in order from bottom to top, i.e. BaseR to sf_one"
+    subtitle = "Note: Plots were run in order from top to bottom, i.e. BaseR to sf_one"
   ) + theme(legend.position = "bottom")
 ```
 
@@ -56,14 +60,19 @@ png_timing %>%
 pdf_timing %>%
   filter(plot_type != "lyr3", plot_type == "BaseR" | step != "TOTAL") %>%
   ggplot(., aes(
-    x = parse_factor(plot_type, levels = unique(plot_type)), y = elapsed,
-    fill = parse_factor(step, c("TOTAL", "draw", "render", "build", "construct"))
-  )) + coord_flip() +
-  geom_bar(stat = "identity") + scale_fill_viridis_d("Step") +
+    x = parse_factor(plot_type, levels = rev(unique(plot_type))),
+    y = elapsed,
+    fill = parse_factor(step, c("construct", "build", "render", "draw", "TOTAL"),
+      ordered = TRUE
+    )
+  )) +
+  coord_flip() +
+  geom_bar(stat = "identity", position = position_stack(reverse = T)) +
+  scale_fill_viridis_d("Step", direction = -1) +
   labs(
     title = "Elapsed time by plotting step - PDF driver",
     x = "Plot", y = "Elapsed (secs)",
-    subtitle = "Note: Plots were run in order from bottom to top, i.e. BaseR to sf_one"
+    subtitle = "Note: Plots were run in order from top to bottom, i.e. BaseR to sf_one"
   )
 ```
 
@@ -91,14 +100,17 @@ bind_rows(mean_rgd, mean_pdf) %>%
 rgd_timing %>%
   filter(plot_type != "lyr3", plot_type == "BaseR" | step != "TOTAL") %>%
   ggplot(., aes(
-    x = parse_factor(plot_type, levels = unique(plot_type)), y = elapsed,
-    fill = parse_factor(step, c("TOTAL", "draw", "render", "build", "construct"))
+    x = parse_factor(plot_type, levels = rev(unique(plot_type))), y = elapsed,
+    fill = parse_factor(step, c("construct", "build", "render", "draw", "TOTAL"),
+      ordered = TRUE
+    )
   )) + coord_flip() +
-  geom_bar(stat = "identity") + scale_fill_viridis_d("Step") +
+  geom_bar(stat = "identity", position = position_stack(reverse = T)) +
+  scale_fill_viridis_d("Step", direction = -1) +
   labs(
     title = "Elapsed time by plotting step - RStudio GD",
     x = "Plot", y = "Elapsed (secs)",
-    subtitle = "Note: Plots were run in order from bottom to top, i.e. BaseR to sf_one"
+    subtitle = "Note: Plots were run in order from top to bottom, i.e. BaseR to sf_one"
   )
 ```
 
@@ -107,3 +119,5 @@ rgd_timing %>%
 ```{r, echo = F}
 descriptions
 ```
+
+
