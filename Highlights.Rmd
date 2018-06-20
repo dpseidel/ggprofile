@@ -12,7 +12,8 @@ descriptions <- read_csv("plot_descriptions.csv")
 rgd_timing <- read_csv("results/ggProfile_rgd_Darwin_quartz_2018-06-14.csv")
 pdf_timing <- read_csv("results/ggProfile_pdf_Darwin_quartz_2018-06-14.csv")
 
-pngs <- list.files("results/", pattern = "png", full.names = T)
+date <- "2018-06-20"
+pngs <- list.files("results/", pattern = paste0("png.*",date), full.names = T)
 png_timing <- purrr::map_df(pngs, read_csv) %>%
   mutate(
     device = parse_factor(rep(c("cairo", "CairoPNG", "quartz", "Xlib", "win"), each = 101),
@@ -51,7 +52,8 @@ png_timing %>%
   labs(
     title = "Elapsed time by plotting step - PNG",
     x = "Plot", y = "Elapsed (secs)",
-    subtitle = "Note: Plots were run in order from top to bottom, i.e. BaseR to sf_one"
+    subtitle = "Note: Plots were run in order from top to bottom, i.e. BaseR to sf_one", 
+    caption = paste("Data collected on", date)
   ) + theme(legend.position = "bottom")
 ```
 
