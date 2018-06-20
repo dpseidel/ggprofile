@@ -116,3 +116,6 @@ png_profile <- function(plot_list = plots, driver = getOption("bitmapType")) {
 }
 
 device_results <- purrr::map(c("quartz", "cairo", "Xlib"), ~ png_profile(plots, driver = .))
+
+# on Windows
+# png_profile(plots)
