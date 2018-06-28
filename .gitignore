@@ -35,3 +35,6 @@ vignettes/*.pdf
 # Shiny token, see https://shiny.rstudio.com/articles/shinyapps.html
 rsconnect/
 .Rproj.user
+
+profiling_tmastny_files/figure-gfm/unnamed-chunk-2-*.png
+profiling_tmastny_files/figure-gfm/unnamed-chunk-5-*.png

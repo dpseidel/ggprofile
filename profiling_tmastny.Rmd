@@ -1,0 +1,105 @@
+---
+title: "Plot Profiling"
+author: "Tim Mastny, @tmastny"
+date: "6/25/2018"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+```
+
+```{r}
+library(ggplot2)
+library(lattice)
+library(grid) 
+library(microbenchmark)
+```
+
+## Diamonds Scatterplot
+
+```{r fig.show='hide', results='hide'}
+plots <- microbenchmark(
+  base = { 
+    plot(price ~ carat, data = diamonds)
+  },
+  ggplot = {
+    p <- ggplot(diamonds, aes(carat, price)) + geom_point(shape = 1)  
+    grid.draw(ggplot_gtable(ggplot_build((p))))
+  },
+  lattice = {
+    print(xyplot(price ~ carat, diamonds))
+  }
+)
+```
+
+```{r}
+plots
+```
+
+## Time in OS Graphics
+
+`ggplot2`:
+```
+1.33 (Tim)
+```
+
+`base`:
+```
+1.41 (Tim)
+```
+
+# Line vs. Point
+
+```{r}
+n <- 86400
+dat <- data.frame(id = 1:n, val = sort(runif(n)))
+```
+
+```{r fig.show='hide', results='hide'}
+plots <- microbenchmark(
+  gg_point = grid.draw(ggplot_gtable(ggplot_build(ggplot(dat, aes(x = id, y = val)) + geom_point()))),
+  gg_line = grid.draw(ggplot_gtable(ggplot_build(ggplot(dat, aes(x = id, y = val)) + geom_line()))),
+  base_point = plot(val ~ id, data = dat),
+  base_line = plot(val ~ id, data = dat, type = 'l'),
+  lattice_point = print(xyplot(val ~ id, dat)),
+  lattice_line = print(xyplot(val ~ id, dat, type = 'l'))
+)
+```
+
+```{r}
+plots
+```
+
+```{r}
+library(tidyverse)
+plots %>%
+  summary() %>%
+  separate(expr, c("plotter", "type"), sep = "_") %>%
+  ggplot() +
+  geom_line(aes(fct_reorder(plotter, mean), mean, color = type, group = type))
+```
+
+## Time in OS Graphics
+
+`ggplot2`:
+
+  - point
+```
+2.13
+```
+  - line
+```
+1.95
+```
+
+`base`:
+
+  - point
+```
+2.16
+```
+  - line
+```
+1.37
+```
