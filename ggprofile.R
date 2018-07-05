@@ -77,7 +77,7 @@ tidy_benchplot <- function(x) {
 
   build <- system.time(data <- ggplot_build(x))
   render <- system.time(grob <- ggplot_gtable(data))
-  grid.newpage() # added for iteration, so we drawing on the same page
+  grid.newpage() # added for iteration, so we are not drawing on the same page
   draw <- system.time(grid.draw(grob))
 
   times <- rbind(construct, build, render, draw)[, 1:3]
