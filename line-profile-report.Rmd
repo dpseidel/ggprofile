@@ -6,12 +6,13 @@ output: github_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
 ```
 
 ```{r}
 library(tidyr)
 library(forcats)
+library(dplyr)
 
 library(ggplot2)
 library(lattice)
@@ -59,7 +60,6 @@ line_point_bencher <- function(data, times = 5) {
 
 line_point_plotter <- function(data) {
   data %>%
-    summary() %>%
     separate(expr, c("plotter", "type"), sep = "_") %>%
     ggplot() +
     geom_line(aes(fct_reorder(plotter, mean), mean, color = type, group = type))
@@ -67,50 +67,107 @@ line_point_plotter <- function(data) {
 ```
 
 
-# "Straight" Line Plot
+# Plots
 
-This set of examples will look plots that a straight-ish. For example,
+We'll compare making line plots with this artifical straight dataset and the `diamonds` dataset.
 
 ```{r}
 n <- nrow(diamonds)
-dat <- function(x) { data.frame(id = 1:x, val = sort(runif(x))) }
+dat <- function(x) { 
+  data.frame(
+    id = seq(min(diamonds$carat), max(diamonds$carat), length.out = x), 
+    val = seq(min(diamonds$price), max(diamonds$price), length.out = x)
+  ) 
+}
 ggplot(dat(n), aes(id, val)) + geom_point()
 ```
 
-### Smaller Plot
-
-First, we will use `r nrow(diamonds)` points to plot, the number of points in the diamond dataset. 
-
 ```{r}
-plots <- line_point_bencher(dat(n))
-plots
-```
-```{r}
-line_point_plotter(plots)
+ggplot(diamonds, aes(carat, price)) + geom_point()
 ```
 
-### Larger Plot
+### Benchmarking
+  
 
 ```{r}
-n <- 86400
-plots <- line_point_bencher(dat(n))
-plots
+straight_small <- line_point_bencher(dat(n)) %>%
+  summary() %>% 
+  mutate(plot = "small") 
 ```
+
 ```{r}
-line_point_plotter(plots)
+straight_large <- line_point_bencher(dat(n * 2)) %>%
+  summary() %>%
+  mutate(plot = "large")
 ```
 
 
-# Diamonds Plot
+```{r}
+d <- data.frame(id = diamonds$carat, val = as.numeric(diamonds$price))
+diamond_plots <- line_point_bencher(d) %>% 
+  summary() %>%
+  mutate(plot = 'diamonds')
+```
 
-Now let's use the actual diamond data-set:
+# Plots
+
+```{r}
+bind_rows(straight_large, straight_small, diamond_plots) %>%
+  mutate(plot = factor(plot, levels = c("diamonds", "small", "large"))) %>%
+  line_point_plotter() +
+  facet_wrap(~plot)
+```
+
+
+# Integer Plots
+
+Before, we've been intentionally plotting doubles. What happens when we use integers?
+
+### "Straight" Line Integers
+
+```{r}
+n <- nrow(diamonds)
+dat <- function(x) { 
+  data.frame(
+    id = 1:x, 
+    val = seq(min(diamonds$price), max(diamonds$price), length.out = x)
+  ) 
+}
+```
+
+```{r}
+straight_small_ints <- line_point_bencher(dat(n)) %>%
+  summary() %>%
+  mutate(data = "int")
+
+straight_small %>%
+  mutate(data = "double") %>%
+  bind_rows(straight_small_ints) %>%
+  line_point_plotter() + 
+  facet_wrap(~data) + 
+  ylim(c(0, 1500)) 
+```
+
+
+### Diamond Integers
 
 ```{r}
 d <- data.frame(id = diamonds$carat, val = diamonds$price)
-plots <- line_point_bencher(d)
-plots
+diamond_plots_int <- line_point_bencher(d) %>%
+  summary() %>%
+  mutate(data = "int")
 ```
+
 ```{r}
-line_point_plotter(plots)
+diamond_plots %>%
+  mutate(data = "double") %>%
+  bind_rows(diamond_plots_int) %>%
+  line_point_plotter() + 
+  facet_wrap(~data) + 
+  ylim(c(0, 1500))
 ```
+
+
+
+
 
