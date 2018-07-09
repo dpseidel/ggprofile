@@ -1,0 +1,116 @@
+---
+title: "Line Plot"
+author: "Tim Mastny"
+date: "7/9/2018"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyr)
+library(forcats)
+
+library(ggplot2)
+library(lattice)
+library(grid) 
+library(microbenchmark)
+```
+
+```{r}
+line_point_bencher <- function(data, times = 5) {
+  microbenchmark(
+    gg_point = {
+      png()
+      p <- ggplot(data, aes(x = id, y = val)) + geom_point()
+      print(p)
+      dev.off()
+    },
+    gg_line = {
+      png()
+      p <- ggplot(data, aes(x = id, y = val)) + geom_line()
+      print(p)
+      dev.off()
+    },
+    base_point = {
+      png()
+      plot(data$id, data$val)
+      dev.off()
+    },
+    base_line = {
+      png()
+      plot(data$id, data$val, type = 'l')
+      dev.off()
+    },
+    lattice_point = {
+      png()
+      print(xyplot(val ~ id, data))
+      dev.off()
+    },
+    lattice_line = {
+      png()
+      print(xyplot(val ~ id, data, type = 'l'))
+      dev.off()
+    }, times = times
+  )
+}
+
+line_point_plotter <- function(data) {
+  data %>%
+    summary() %>%
+    separate(expr, c("plotter", "type"), sep = "_") %>%
+    ggplot() +
+    geom_line(aes(fct_reorder(plotter, mean), mean, color = type, group = type))
+}
+```
+
+
+# "Straight" Line Plot
+
+This set of examples will look plots that a straight-ish. For example,
+
+```{r}
+n <- nrow(diamonds)
+dat <- function(x) { data.frame(id = 1:x, val = sort(runif(x))) }
+ggplot(dat(n), aes(id, val)) + geom_point()
+```
+
+### Smaller Plot
+
+First, we will use `r nrow(diamonds)` points to plot, the number of points in the diamond dataset. 
+
+```{r}
+plots <- line_point_bencher(dat(n))
+plots
+```
+```{r}
+line_point_plotter(plots)
+```
+
+### Larger Plot
+
+```{r}
+n <- 86400
+plots <- line_point_bencher(dat(n))
+plots
+```
+```{r}
+line_point_plotter(plots)
+```
+
+
+# Diamonds Plot
+
+Now let's use the actual diamond data-set:
+
+```{r}
+d <- data.frame(id = diamonds$carat, val = diamonds$price)
+plots <- line_point_bencher(d)
+plots
+```
+```{r}
+line_point_plotter(plots)
+```
+
