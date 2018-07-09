@@ -30,7 +30,7 @@ line_point_bencher <- function(data, times = 5) {
     },
     gg_line = {
       png()
-      p <- ggplot(data, aes(x = id, y = val)) + geom_line()
+      p <- ggplot(data, aes(x = id, y = val)) + geom_path()
       print(p)
       dev.off()
     },
