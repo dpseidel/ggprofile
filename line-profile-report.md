@@ -9,6 +9,8 @@ library(forcats)
 library(dplyr)
 ```
 
+    ## Warning: package 'dplyr' was built under R version 3.5.1
+
     ## 
     ## Attaching package: 'dplyr'
 
@@ -36,9 +38,15 @@ line_point_bencher <- function(data, times = 5) {
       print(p)
       dev.off()
     },
-    gg_line = {
+    ggpath_line = {
       png()
       p <- ggplot(data, aes(x = id, y = val)) + geom_path()
+      print(p)
+      dev.off()
+    },
+    ggline_line = {
+      png()
+      p <- ggplot(data, aes(x = id, y = val)) + geom_line()
       print(p)
       dev.off()
     },
@@ -68,8 +76,9 @@ line_point_bencher <- function(data, times = 5) {
 line_point_plotter <- function(data) {
   data %>%
     separate(expr, c("plotter", "type"), sep = "_") %>%
-    ggplot() +
-    geom_line(aes(fct_reorder(plotter, mean), mean, color = type, group = type))
+    ggplot(aes(fct_reorder(plotter, mean), mean, color = type, group = type)) +
+    geom_line() + 
+    geom_point()
 }
 ```
 
